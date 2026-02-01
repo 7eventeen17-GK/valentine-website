@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valentine Surprise</title>
+<style>
+body{margin:0;font-family:'Comic Sans MS', cursive;background:linear-gradient(to bottom,#f5efe6,#d2b48c,#b8865b);color:#5c3a21;display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;overflow:hidden;position:relative;}
+h1{font-size:2.5rem;text-align:center;margin-bottom:20px;z-index:2;}
+p{font-size:1.2rem;text-align:center;max-width:400px;margin-bottom:20px;}
+button{padding:10px 20px;margin:5px;font-size:16px;border:none;border-radius:5px;cursor:pointer;z-index:2;position:relative;}
+#yes{background-color:#ff4d6d;color:white;}
+#no{background-color:#ccc;}
+#celebration{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,255,255,0.85);display:none;flex-direction:column;justify-content:center;align-items:center;font-size:24px;color:#ff4d6d;z-index:10;}
+#celebration img{width:300px;margin-top:20px;}
+canvas{position:absolute;top:0;left:0;pointer-events:none;z-index:1;}
+.floatingHeart{position:absolute;width:20px;height:20px;background-color:#ff4d6d;clip-path:polygon(50% 0%,61% 10%,70% 25%,70% 45%,50% 65%,30% 45%,30% 25%,39% 10%);animation:floatUp 3s linear infinite;}
+@keyframes floatUp{0%{transform:translateY(0) scale(1);opacity:1;}100%{transform:translateY(-200px) scale(1.1);opacity:0;}}
+.mug{width:100px;height:100px;background:#a0522d;border-radius:50% 50% 0 0;position:relative;margin:20px;cursor:pointer;display:none;}
+.mug::after{content:"";position:absolute;right:-20px;top:25px;width:15px;height:50px;border:5px solid #a0522d;border-radius:50%;background:transparent;}
+.steam{position:absolute;width:4px;height:40px;top:-40px;left:45px;background:linear-gradient(to top,rgba(255,255,255,0.5),rgba(255,255,255,0));border-radius:50%;animation:rise 2s infinite;}
+@keyframes rise{0%{transform:translateY(0) scaleX(1) scaleY(1) rotate(0deg);opacity:0.6;}50%{transform:translateY(-30px) scaleX(0.9) scaleY(1.2) rotate(5deg);opacity:0.8;}100%{transform:translateY(-60px) scaleX(1) scaleY(1) rotate(-5deg);opacity:0;}}
+</style>
+</head>
+<body>
+
+<h1 id="question">Will you be my Valentines Bussu? 🤎</h1>
+<div id="buttons">
+  <button id="yes">Yes</button>
+  <button id="no">No</button>
+</div>
+
+<div id="celebration">
+  🎉 YAY! You said YES! 🎉
+  <img src="https://media.giphy.com/media/3o7TKtdsX3J8e10m1C/giphy.gif" alt="Celebration GIF">
+</div>
+
+<div class="mug" id="mug">
+  <div class="steam"></div>
+  <div class="steam" style="animation-delay:0.5s; left:35px;"></div>
+  <div class="steam" style="animation-delay:1s; left:55px;"></div>
+</div>
+
+<canvas id="confetti"></canvas>
+<audio id="cheerSound" src="https://www.soundjay.com/human/applause-8.mp3" preload="auto"></audio>
+
+<script>
+// Confetti setup
+const canvas=document.getElementById('confetti');
+const ctx=canvas.getContext('2d');
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+const colors=['#ff4d6d','#ff66a3','#ff99cc','#ff1a75'];
+const hearts=[];
+for(let i=0;i<100;i++){hearts.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height-canvas.height,size:Math.random()*15+10,color:colors[Math.floor(Math.random()*colors.length)],speed:Math.random()*3+2,angle:Math.random()*Math.PI*2});}
+function drawHeart(x,y,size,color){ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(x,y);ctx.bezierCurveTo(x,y-size/2,x-size,y-size/2,x-size,y);ctx.bezierCurveTo(x-size,y+size/2,x,y+size,x,y+size);ctx.bezierCurveTo(x,y+size,x+size,y+size/2,x+size,y);ctx.bezierCurveTo(x+size,y-size/2,x,y-size/2,x,y);ctx.fill();}
+function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);hearts.forEach(h=>{drawHeart(h.x,h.y,h.size,h.color);h.y+=h.speed;h.x+=Math.sin(h.angle)*2;h.angle+=0.05;if(h.y>canvas.height){h.y=-20;h.x=Math.random()*canvas.width;}});requestAnimationFrame(animate);}
+function createFloatingHearts(){for(let i=0;i<15;i++){const h=document.createElement('div');h.className='floatingHeart';h.style.left=Math.random()*window.innerWidth+'px';h.style.top=window.innerHeight+Math.random()*50+'px';h.style.animationDuration=(2+Math.random()*2)+'s';h.style.width=h.style.height=(10+Math.random()*15)+'px';document.body.appendChild(h);}}
+
+document.getElementById('yes').onclick = ()=>{
+  document.getElementById('celebration').style.display='flex';
+  document.getElementById('buttons').style.display='none';
+  document.getElementById('cheerSound').play();
+  animate();
+  createFloatingHearts();
+
+  // After 3 seconds, show coffee page vibe
+  setTimeout(()=>{
+    document.getElementById('celebration').style.display='none';
+    document.getElementById('question').textContent='Our Coffee Date ☕🤎';
+    document.getElementById('mug').style.display='block';
+    document.getElementById('buttons').style.display='none';
+    document.querySelector('p')?.remove();
+    const p=document.createElement('p');
+    p.textContent='Click the mug to confirm our coffee date!';
+    document.body.insertBefore(p, document.getElementById('mug'));
+  },3000);
+};
+
+// No button runs away
+const noBtn=document.getElementById('no');
+noBtn.addEventListener('mouseenter',()=>{noBtn.style.position='absolute';noBtn.style.left=Math.random()*(window.innerWidth-noBtn.offsetWidth)+'px';noBtn.style.top=Math.random()*(window.innerHeight-noBtn.offsetHeight)+'px';});
+
+// Mug click → WhatsApp
+document.getElementById('mug').onclick = ()=>{
+  const phone='+254725523567';
+  const message=encodeURIComponent('I would Love to go for a coffee with you ☕🤎');
+  window.location.href=`https://wa.me/${phone}?text=${message}`;
+};
+
+window.addEventListener('resize',()=>{canvas.width=window.innerWidth;canvas.height=window.innerHeight;});
+</script>
+</body>
+</html>
